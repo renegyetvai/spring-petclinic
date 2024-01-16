@@ -2,7 +2,7 @@ pipeline {
     agent {
         kubernetes {
             cloud 'K8s Cluster 01'
-            defaultContainer 'custom-alpine'
+            defaultContainer 'custom-dind'
             inheritFrom "dev-agent-${env.BUILD_NUMBER}"
             slaveConnectTimeout 300
             idleMinutes 5
@@ -25,7 +25,7 @@ pipeline {
                                       - k8s-worker-3
                     containers:
                     - name: custom-alpine
-                      image: rgyetvai/custom-alpine:latest
+                      image: rgyetvai/custom-dind:latest
                       imagePullPolicy: Always
                       command:
                       - cat

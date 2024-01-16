@@ -80,7 +80,7 @@ pipeline {
         stage('Setup Test Instance') {
             steps {
                 container('custom-alpine') {
-                    sh './mvnw spring-boot:build-image -D spring-boot.build-image.imageName=petclinic-micro-svc'
+                    sh 'mvn spring-boot:build-image -D spring-boot.build-image.imageName=petclinic-micro-svc'
                     sh 'docker run -d --name temp_container petclinic-micro-svc:latest'
                     sh 'docker commit temp_container rgyetvai/petclinic:testing'
                     sh 'docker rm -f temp_container'

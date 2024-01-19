@@ -32,11 +32,11 @@ pipeline {
                       tty: true
                       resources:
                         limits:
-                          memory: "3Gi"
-                          cpu: "2"
+                          memory: "8Gi"
+                          cpu: "4"
                         requests:
                           memory: "1Gi"
-                          cpu: "500m"
+                          cpu: "1"
                       volumeMounts:
                       - name: docker-sock-volume
                         mountPath: /var/run/docker.sock
@@ -80,7 +80,7 @@ pipeline {
         stage('Setup Test Instance') {
             steps {
                 container('custom-alpine') {
-                    sh 'mvn spring-boot:build-image -D spring-boot.build-image.imageName=petclinic-micro-svc'
+                    sh 'mvn spring-boot:build-image -D spring-boot.build-image.imageName=petclinic-micro-svc -DskipTests'
                     sh 'docker run -d --name temp_container petclinic-micro-svc:latest'
                     sh 'docker commit temp_container rgyetvai/petclinic:testing'
                     sh 'docker rm -f temp_container'
@@ -89,7 +89,7 @@ pipeline {
                     sh 'docker network create --driver=bridge --subnet=172.16.0.0/24 zapnet'
 
                     sh 'docker rm -f petclinic-test'
-                    sh 'docker run -d --name petclinic-test --net zapnet --ip 172.16.0.2 -p 8081:8081 rgyetvai/petclinic:testing'
+                    sh 'docker run -d --name petclinic-test --net zapnet --ip 172.16.0.2 -p 8080:8080 rgyetvai/petclinic:testing'
                 }
             }
         }
@@ -205,7 +205,7 @@ def nestedStagesTwo() {
         }
         stage('OWASP ZAP Scan') {
             sh 'docker pull softwaresecurityproject/zap-stable'
-            sh 'docker run --net zapnet --user root -v $(pwd):/zap/wrk/:rw -t softwaresecurityproject/zap-stable zap-baseline.py -t https://172.16.0.2:8081 -g gen.conf -r report.html -I'
+            sh 'docker run --net zapnet --user root -v $(pwd):/zap/wrk/:rw -t softwaresecurityproject/zap-stable zap-baseline.py -t https://172.16.0.2:8080 -g gen.conf -r report.html -I'
         }
         stage('DAST 02') {
             sh """

@@ -24,7 +24,7 @@ pipeline {
                                       values:
                                       - k8s-worker-3
                     containers:
-                    - name: custom-alpine
+                    - name: custom-dind
                       image: rgyetvai/custom-dind:latest
                       imagePullPolicy: Always
                       command:
@@ -59,7 +59,7 @@ pipeline {
     stages {
         stage('Git Checkout') {
             steps {
-                container('custom-alpine') {
+                container('custom-dind') {
                     script {
                         git branch: 'parallelized-jenkinsfile',
                             credentialsId: 'git_jenkins_ba_01',
@@ -70,7 +70,7 @@ pipeline {
         }
         stage('Compile Sources') {
             steps {
-                container('custom-alpine') {
+                container('custom-dind') {
                     sh 'mvn --version'
                     sh 'mvn clean package -DskipTests'
                 }
@@ -78,10 +78,7 @@ pipeline {
         }
         stage('Setup Test Instance') {
             steps {
-                container('custom-alpine') {
-                    sh 'docker network ls'
-                    sh 'docker network inspect zapnet'
-
+                container('custom-dind') {
                     sh 'docker rm -f petclinic-test'
 
                     sh 'docker network rm -f zapnet'
@@ -99,7 +96,7 @@ pipeline {
         }
         stage('Test & Scan Sources') {
             steps {
-                container('custom-alpine') {
+                container('custom-dind') {
                     script {
                         parallel getWrappedStages()
                     }
@@ -108,7 +105,7 @@ pipeline {
         }
         stage('Docker Build') {
             steps {
-                container('custom-alpine') {
+                container('custom-dind') {
                     script {
                         sh 'docker run -d --name temp_container petclinic-micro-svc:latest'
                         sh 'docker commit temp_container rgyetvai/petclinic:latest'
@@ -119,7 +116,7 @@ pipeline {
         }
         stage('Docker Push') {
             steps {
-                container('custom-alpine') {
+                container('custom-dind') {
                     script {
                         sh 'docker login -u $DOCKERHUB_CREDENTIALS_USR -p $DOCKERHUB_CREDENTIALS_PSW'
                         sh 'docker push rgyetvai/petclinic:latest'
@@ -131,9 +128,7 @@ pipeline {
     post {
         always {
             sh 'docker logout'
-            container('custom-alpine') {
-                sh 'docker-compose down'
-
+            container('custom-dind') {
                 sh 'docker stop petclinic-test'
                 sh 'docker rm -f petclinic-test'
 

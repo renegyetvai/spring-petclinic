@@ -79,6 +79,8 @@ pipeline {
         stage('Setup Test Instance') {
             steps {
                 container('custom-alpine') {
+                    sh 'docker-compose down'
+
                     sh 'docker network rm -f zapnet'
                     sh 'docker network create --driver=bridge --subnet=172.16.0.0/24 zapnet'
 
@@ -127,6 +129,8 @@ pipeline {
         always {
             sh 'docker logout'
             container('custom-alpine') {
+                sh 'docker-compose down'
+
                 sh 'docker stop petclinic-test'
                 sh 'docker rm -f petclinic-test'
 

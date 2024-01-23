@@ -50,7 +50,6 @@ pipeline {
     }
     options {
         buildDiscarder(logRotator(numToKeepStr: '5'))
-        timestamps()
         parallelsAlwaysFailFast()
     }
     environment {
@@ -118,7 +117,7 @@ pipeline {
                 container('custom-alpine') {
                     script {
                         sh 'docker login -u $DOCKERHUB_CREDENTIALS_USR -p $DOCKERHUB_CREDENTIALS_PSW'
-                        sh 'docker push rgyetvai/web-srv-example-02:latest'
+                        sh 'docker push rgyetvai/petclinic:latest'
                     }
                 }
             }

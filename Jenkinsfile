@@ -80,7 +80,7 @@ pipeline {
             steps {
                 container('custom-alpine') {
                     sh 'docker network ls'
-                    sh 'ocker network inspect zapnet'
+                    sh 'docker network inspect zapnet'
 
                     sh 'docker network rm -f zapnet'
                     sh 'docker network create --driver=bridge --subnet=172.16.0.0/24 zapnet'

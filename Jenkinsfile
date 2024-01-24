@@ -1,22 +1,5 @@
-properties([
-    buildDiscarder(
-        logRotator(
-            artifactDaysToKeepStr: '', 
-            artifactNumToKeepStr: '', 
-            daysToKeepStr: '', 
-            numToKeepStr: '5'
-        )
-    )
-])
-
-podTemplate(
-    cloud 'K8s Cluster 01'
-    defaultContainer 'custom-dind'
-    slaveConnectTimeout 300
-    idleMinutes 5
-    serviceAccount 'jenkins-admin'
-    yaml'''
-        apiVersion: v1
+def podYaml = '''
+apiVersion: v1
         kind: Pod
         metadata:
             namespace: devops-tools
@@ -52,7 +35,26 @@ podTemplate(
                 hostPath:
                 path: /var/run/docker.sock
                 type: Socket
-    '''
+'''
+
+properties([
+    buildDiscarder(
+        logRotator(
+            artifactDaysToKeepStr: '', 
+            artifactNumToKeepStr: '', 
+            daysToKeepStr: '', 
+            numToKeepStr: '5'
+        )
+    )
+])
+
+podTemplate(
+    cloud: 'K8s Cluster 01',
+    defaultContainer: 'custom-dind',
+    slaveConnectTimeout: 300,
+    idleMinutes: 5,
+    serviceAccount: 'jenkins-admin',
+    yaml: podYaml
 ) {
     node(POD_LABEL) {
         try {

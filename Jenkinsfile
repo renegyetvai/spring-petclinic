@@ -1,6 +1,3 @@
-// Variables
-def SCANNER_HOME = tool 'sonar-scanner'
-
 // Properties
 properties([
     buildDiscarder(
@@ -60,6 +57,9 @@ podTemplate(
 ) {
 // Pipeline
     node(POD_LABEL) {
+        // Variables
+        def SCANNER_HOME = tool 'sonar-scanner'
+
         try {
             stage('Checkout') {
                 git url: 'git@github.com:renegyetvai/spring-petclinic.git', branch: 'parallelized-jenkinsfile', credentialsId: 'git_jenkins_ba_01'

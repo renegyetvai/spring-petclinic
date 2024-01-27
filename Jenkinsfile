@@ -1,3 +1,7 @@
+// Variables
+def SCANNER_HOME = tool 'sonar-scanner'
+
+// Properties
 properties([
     buildDiscarder(
         logRotator(
@@ -9,6 +13,7 @@ properties([
     )
 ])
 
+// Environment
 podTemplate(
     cloud: "K8s Cluster 01",
     slaveConnectTimeout: 300,
@@ -53,6 +58,7 @@ podTemplate(
             name: docker-sock-volume
     '''
 ) {
+// Pipeline
     node(POD_LABEL) {
         try {
             stage('Checkout') {
@@ -124,18 +130,13 @@ podTemplate(
     }  
 }
 
+// Functions
 def getWrappedStages() {
     stages = [:]
     stages["Tests & SAST"] = {
-        stage('Tests & SAST') {
-            echo "Executing Tests & SAST"
-        }
         parallel nestedStagesOne()
     }
     stages["Prepare, Build & Scan"] = {
-        stage('Prepare DAST') {
-            echo "Executing DAST Preparation"
-        }
         parallel nestedStagesTwo()
     }
     return stages
@@ -153,13 +154,11 @@ def nestedStagesOne() {
             dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
         }
         stage('SonarQube Scan') {
-            withEnv(['SCANNER_HOME = tool \'sonar-scanner\'']) {
-                withSonarQubeEnv('sonarqube') {
-                    sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=petclinic-example \
-                    -Dsonar.java.binaries=. \
-                    -Dsonar.projectKey=petclinic-example \
-                    -Dsonar.exclusions=dependency-check-report.html '''
-                }
+            withSonarQubeEnv('sonarqube') {
+                sh ''' ${SCANNER_HOME}/bin/sonar-scanner -Dsonar.projectName=petclinic-example \
+                -Dsonar.java.binaries=. \
+                -Dsonar.projectKey=petclinic-example \
+                -Dsonar.exclusions=dependency-check-report.html '''
             }
         }
     }

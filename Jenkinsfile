@@ -14,7 +14,7 @@ podTemplate(
     slaveConnectTimeout: 300,
     idleMinutes: 5,
     serviceAccount: "jenkins-admin",
-    yaml """
+    yaml: """
         apiVersion: v1
         kind: Pod
         metadata:

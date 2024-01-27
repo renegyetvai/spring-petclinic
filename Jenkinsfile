@@ -69,7 +69,7 @@ podTemplate(
                 stages["Build Sources"] = {
                     container('custom-dind') {
                         sh 'mvn --version'
-                        sh 'mvn clean package -DskipTests'
+                        sh 'mvn clean -DskipTests'
                     }
                 }
                 stages["Setup Test Instance"] = {

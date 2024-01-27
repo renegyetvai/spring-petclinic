@@ -144,15 +144,19 @@ def getWrappedStages() {
 
 def nestedStagesOne() {
     stages = [:]
-    stages["Tests & SAST Scans"] = {
+    stages["Unit & Integration Tests"] = {
         stage('Unit & Integration Tests') {
             sh 'mvn test'
             sh 'mvn verify'
         }
+    }
+    stages["OWASP Dependency Scan"] = {
         stage('OWASP Dependency Scan') {
             dependencyCheck additionalArguments: '', odcInstallation: 'DP-check'
             dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
         }
+    }
+    stages["SonarQube Scan"] = {
         stage('SonarQube Scan') {
             withSonarQubeEnv('sonarqube') {
                 sh ''' ${SCANNER_HOME}/bin/sonar-scanner -Dsonar.projectName=petclinic-example \
@@ -167,15 +171,19 @@ def nestedStagesOne() {
 
 def nestedStagesTwo() {
     stages = [:]
-    stages["Container & DAST Scans"] = {
+    stages["Trivy Image Scan"] = {
         stage('Trivy Image Scan') {
             // Severity levels: MEDIUM,HIGH,CRITICAL
             sh 'trivy image --exit-code 1 --severity CRITICAL rgyetvai/petclinic:testing'
         }
+    }
+    stages["OWASP ZAP Scan"] = {
         stage('OWASP ZAP Scan') {
             sh 'docker pull softwaresecurityproject/zap-stable'
             sh 'docker run --net zapnet --user root -v $(pwd):/zap/wrk/:rw -t softwaresecurityproject/zap-stable zap-baseline.py -t https://172.16.0.2:8080 -g gen.conf -r report.html -I'
         }
+    }
+    stages["DAST 02"] = {
         stage('DAST 02') {
             echo "Executing DAST 02"
         }

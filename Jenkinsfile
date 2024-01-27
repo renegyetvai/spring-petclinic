@@ -1,20 +1,20 @@
 properties([
     buildDiscarder(
         logRotator(
-            artifactDaysToKeepStr: '', 
-            artifactNumToKeepStr: '', 
-            daysToKeepStr: '', 
-            numToKeepStr: '5'
+            artifactDaysToKeepStr: "",
+            artifactNumToKeepStr: "",
+            daysToKeepStr: "",
+            numToKeepStr: "5"
         )
     )
 ])
 
 podTemplate(
-    cloud: 'K8s Cluster 01',
+    cloud: "K8s Cluster 01",
     slaveConnectTimeout: 300,
     idleMinutes: 5,
-    serviceAccount: 'jenkins-admin',
-    yaml '''
+    serviceAccount: "jenkins-admin",
+    yaml """
         apiVersion: v1
         kind: Pod
         metadata:
@@ -51,7 +51,7 @@ podTemplate(
                 hostPath:
                 path: /var/run/docker.sock
                 type: Socket
-    '''
+    """
 ) {
     node(POD_LABEL) {
         try {

@@ -18,7 +18,7 @@ podTemplate(
         apiVersion: v1
         kind: Pod
         metadata:
-          name: dev-agent-${env.BUILD_NUMBER}
+          name: jenkins-build-pod
           namespace: devops-tools
         spec:
           affinity:
@@ -33,14 +33,14 @@ podTemplate(
           containers:
           - command:
             - cat
-            image: rgyetvai/custom-alpine:latest
-            name: custom-alpine
+            image: rgyetvai/custom-dind:latest
+            name: custom-dind
             resources:
               limits:
                 cpu: "4"
-                memory: 3Gi
+                memory: 8Gi
               requests:
-                cpu: 500m
+                cpu: "2"
                 memory: 1Gi
             tty: true
             volumeMounts:

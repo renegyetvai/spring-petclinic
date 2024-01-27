@@ -14,44 +14,44 @@ podTemplate(
     slaveConnectTimeout: 300,
     idleMinutes: 5,
     serviceAccount: "jenkins-admin",
-    yaml: """
+    yaml: '''
         apiVersion: v1
         kind: Pod
         metadata:
-            namespace: devops-tools
+          name: dev-agent-${env.BUILD_NUMBER}
+          namespace: devops-tools
         spec:
-            affinity:
-                nodeAffinity:
-                    requiredDuringSchedulingIgnoredDuringExecution:
-                        nodeSelectorTerms:
-                        - matchExpressions:
-                            - key: kubernetes.io/hostname
-                                operator: In
-                                values:
-                                - k8s-worker-3
-            containers:
-            - name: custom-dind
-                image: rgyetvai/custom-dind:latest
-                imagePullPolicy: Always
-                command:
-                - cat
-                tty: true
-                resources:
-                limits:
-                    memory: "8Gi"
-                    cpu: "4"
-                requests:
-                    memory: "1Gi"
-                    cpu: "1"
-                volumeMounts:
-                - name: docker-sock-volume
-                mountPath: /var/run/docker.sock
-            volumes:
-            - name: docker-sock-volume
-                hostPath:
-                path: /var/run/docker.sock
-                type: Socket
-    """
+          affinity:
+            nodeAffinity:
+              requiredDuringSchedulingIgnoredDuringExecution:
+                nodeSelectorTerms:
+                - matchExpressions:
+                  - key: kubernetes.io/hostname
+                    operator: In
+                    values:
+                    - k8s-worker-3
+          containers:
+          - command:
+            - cat
+            image: rgyetvai/custom-alpine:latest
+            name: custom-alpine
+            resources:
+              limits:
+                cpu: "4"
+                memory: 3Gi
+              requests:
+                cpu: 500m
+                memory: 1Gi
+            tty: true
+            volumeMounts:
+            - mountPath: /var/run/docker.sock
+              name: docker-sock-volume
+          volumes:
+          - hostPath:
+              path: /var/run/docker.sock
+              type: Socket
+            name: docker-sock-volume
+    '''
 ) {
     node(POD_LABEL) {
         try {

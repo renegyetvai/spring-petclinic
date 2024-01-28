@@ -60,11 +60,7 @@ podTemplate(
         try {
             stage('Test ENV VAR') {
                 def SCANNER_HOME = tool 'sonar-scanner'
-
-                withEnv(["PATH+SONAR=${SCANNER_HOME}/bin"]) {
-                    echo "Scanner Home: ${SCANNER_HOME}"
-                    echo "Path: ${PATH}"
-                }
+                echo "Scanner Home: ${SCANNER_HOME}"
             }
             stage('Checkout') {
                 git url: 'git@github.com:renegyetvai/spring-petclinic.git', branch: 'parallelized-jenkinsfile', credentialsId: 'git_jenkins_ba_01'
@@ -164,16 +160,11 @@ def nestedStagesOne() {
     stages["SonarQube Scan"] = {
         stage('SonarQube Scan') {
             def SCANNER_HOME = tool 'sonar-scanner'
+            echo "Scanner Home B1: ${SCANNER_HOME}"
 
-            withEnv("PATH+SONAR=${SCANNER_HOME}") {
-                echo "Path: ${PATH}"
-
-                withSonarQubeEnv('sonarqube') {
-                    sh ''' ${PATH}/bin/sonar-scanner -Dsonar.projectName=petclinic-example \
-                    -Dsonar.java.binaries=. \
-                    -Dsonar.projectKey=petclinic-example \
-                    -Dsonar.exclusions=dependency-check-report.html '''
-                }
+            withSonarQubeEnv('sonarqube') {
+                echo "Scanner Home B2: ${SCANNER_HOME}"
+                sh '${SCANNER_HOME}/bin/sonar-scanner -Dsonar.projectName=petclinic-example -Dsonar.java.binaries=. -Dsonar.projectKey=petclinic-example -Dsonar.exclusions=dependency-check-report.html'
             }
         }
     }

@@ -155,7 +155,7 @@ def nestedStagesOne() {
     }
     stages["SonarQube Scan"] = {
         stage('SonarQube Scan') {
-            def SCANNER_HOME = tool 'sonar-scanner';
+            def SCANNER_HOME = tool 'sonar-scanner'
 
             withSonarQubeEnv('sonarqube') {
                 sh ''' ${SCANNER_HOME}/bin/sonar-scanner -Dsonar.projectName=petclinic-example \

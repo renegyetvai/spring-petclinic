@@ -58,10 +58,6 @@ podTemplate(
 // Pipeline
     node(POD_LABEL) {
         try {
-            stage('Test ENV VAR') {
-                def SCANNER_HOME = tool 'sonar-scanner'
-                echo "Scanner Home: ${SCANNER_HOME}"
-            }
             stage('Checkout') {
                 git url: 'git@github.com:renegyetvai/spring-petclinic.git', branch: 'parallelized-jenkinsfile', credentialsId: 'git_jenkins_ba_01'
             }
@@ -92,6 +88,8 @@ podTemplate(
                 parallel(stages)
             }
             stage('Test & Scan Sources') {
+                def SCANNER_HOME = tool 'sonar-scanner'
+                echo "Scanner Home: ${SCANNER_HOME}"
                 container('custom-dind') {
                     parallel getWrappedStages()
                 }
@@ -159,7 +157,6 @@ def nestedStagesOne() {
     }
     stages["SonarQube Scan"] = {
         stage('SonarQube Scan') {
-            def SCANNER_HOME = tool 'sonar-scanner'
             echo "Scanner Home B1: ${SCANNER_HOME}"
 
             withSonarQubeEnv('sonarqube') {

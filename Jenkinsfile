@@ -157,11 +157,15 @@ def nestedStagesOne() {
         stage('SonarQube Scan') {
             def SCANNER_HOME = tool 'sonar-scanner'
 
-            withSonarQubeEnv('sonarqube') {
-                sh ''' ${SCANNER_HOME}/bin/sonar-scanner -Dsonar.projectName=petclinic-example \
-                -Dsonar.java.binaries=. \
-                -Dsonar.projectKey=petclinic-example \
-                -Dsonar.exclusions=dependency-check-report.html '''
+            withEnv("PATH+SONAR=${SCANNER_HOME}") {
+                echo "Path: ${PATH}"
+
+                withSonarQubeEnv('sonarqube') {
+                    sh ''' ${PATH}/bin/sonar-scanner -Dsonar.projectName=petclinic-example \
+                    -Dsonar.java.binaries=. \
+                    -Dsonar.projectKey=petclinic-example \
+                    -Dsonar.exclusions=dependency-check-report.html '''
+                }
             }
         }
     }

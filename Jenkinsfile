@@ -58,6 +58,14 @@ podTemplate(
 // Pipeline
     node(POD_LABEL) {
         try {
+            stage('Test ENV VAR') {
+                def SCANNER_HOME = tool 'sonar-scanner'
+
+                withEnv("PATH+SONAR=${SCANNER_HOME}/bin") {
+                    echo "Scanner Home: ${SCANNER_HOME}"
+                    echo "Path: ${PATH}"
+                }
+            }
             stage('Checkout') {
                 git url: 'git@github.com:renegyetvai/spring-petclinic.git', branch: 'parallelized-jenkinsfile', credentialsId: 'git_jenkins_ba_01'
             }

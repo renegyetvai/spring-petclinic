@@ -89,7 +89,6 @@ podTemplate(
             }
             stage('Test & Scan Sources') {
                 container('custom-dind') {
-                    def SCANNER_HOME = tool 'sonar-scanner'
                     parallel getWrappedStages()
                 }
             }
@@ -156,6 +155,7 @@ def nestedStagesOne() {
     // }
     stages["SonarQube Scan"] = {
         stage('SonarQube Scan') {
+            def SCANNER_HOME = tool 'sonar-scanner'
             withSonarQubeEnv('sonarqube') {
                 sh """ ${SCANNER_HOME}/bin/sonar-scanner -Dsonar.projectName=petclinic-example \
                 -Dsonar.java.binaries=. \

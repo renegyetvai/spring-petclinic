@@ -58,6 +58,12 @@ podTemplate(
 // Pipeline
     node(POD_LABEL) {
         try {
+            stage('Test ENV') {
+                container('custom-dind') {
+                    def TEST_PATH = tool 'sonar-scanner'
+                    echo "Scanner Home A1: ${TEST_PATH}"
+                }
+            }
             stage('Checkout') {
                 git url: 'git@github.com:renegyetvai/spring-petclinic.git', branch: 'parallelized-jenkinsfile', credentialsId: 'git_jenkins_ba_01'
             }

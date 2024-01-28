@@ -89,7 +89,7 @@ podTemplate(
             }
             stage('Test & Scan Sources') {
                 def SCANNER_HOME = tool 'sonar-scanner'
-                echo "Scanner Home: ${SCANNER_HOME}"
+                
                 container('custom-dind') {
                     parallel getWrappedStages()
                 }

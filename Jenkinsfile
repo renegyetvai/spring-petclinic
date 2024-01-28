@@ -61,7 +61,7 @@ podTemplate(
             stage('Test ENV VAR') {
                 def SCANNER_HOME = tool 'sonar-scanner'
 
-                withEnv("PATH+SONAR=${SCANNER_HOME}/bin") {
+                withEnv(["PATH+SONAR=${SCANNER_HOME}/bin"]) {
                     echo "Scanner Home: ${SCANNER_HOME}"
                     echo "Path: ${PATH}"
                 }

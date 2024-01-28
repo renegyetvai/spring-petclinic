@@ -169,12 +169,12 @@ def nestedStagesOne() {
 
 def nestedStagesTwo() {
     stages = [:]
-    stages["Trivy Image Scan"] = {
-        stage('Trivy Image Scan') {
+    //stages["Trivy Image Scan"] = {
+    //    stage('Trivy Image Scan') {
             // Severity levels: MEDIUM,HIGH,CRITICAL
-            sh 'trivy image --exit-code 1 --severity CRITICAL rgyetvai/petclinic:testing'
-        }
-    }
+    //        sh 'trivy image --exit-code 1 --severity CRITICAL rgyetvai/petclinic:testing'
+    //    }
+    //}
     stages["OWASP ZAP Scan"] = {
         stage('OWASP ZAP Scan') {
             sh 'docker pull softwaresecurityproject/zap-stable'

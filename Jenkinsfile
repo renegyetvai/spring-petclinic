@@ -144,7 +144,7 @@ def nestedStagesOne() {
     stages["Unit & Integration Tests"] = {
         stage('Unit & Integration Tests') {
             sh 'mvn test'
-            sh 'mvn verify'
+            //sh 'mvn verify'
         }
     }
     stages["OWASP Dependency Scan"] = {

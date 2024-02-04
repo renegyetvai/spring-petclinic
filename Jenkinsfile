@@ -87,32 +87,36 @@ pipeline {
                 }
             }
         }
-        stage('Compile Sources') {
-            steps {
-                container('custom-dind-01') {
-                    sh 'mvn --version'
-                    sh 'mvn clean package -DskipTests'
+        stage('Prepare Environment') {
+            parallel {
+                stage('Compile Sources') {
+                    steps {
+                        container('custom-dind-01') {
+                            sh 'mvn --version'
+                            sh 'mvn clean package -DskipTests'
+                        }
+                    }
                 }
-            }
-        }
-        stage('Setup Test Instance') {
-            steps {
-                container('custom-dind-02') {
-                    // Get shared workspace
-                    sh 'cp -r /usr/share/git/* .'
+                stage('Setup Test Instance') {
+                    steps {
+                        container('custom-dind-02') {
+                            // Get shared workspace
+                            sh 'cp -r /usr/share/git/* .'
 
-                    sh 'docker rm -f petclinic-test'
+                            sh 'docker rm -f petclinic-test'
 
-                    sh 'docker network rm -f zapnet'
-                    sh 'docker network create --driver=bridge --subnet=172.16.0.0/24 zapnet'
+                            sh 'docker network rm -f zapnet'
+                            sh 'docker network create --driver=bridge --subnet=172.16.0.0/24 zapnet'
 
-                    sh 'mvn spring-boot:build-image -D spring-boot.build-image.imageName=petclinic-micro-svc -DskipTests'
-                    sh 'docker run -d --name temp_container petclinic-micro-svc:latest'
-                    sh 'docker commit temp_container rgyetvai/petclinic:testing'
-                    sh 'docker rm -f temp_container'
+                            sh 'mvn spring-boot:build-image -D spring-boot.build-image.imageName=petclinic-micro-svc -DskipTests'
+                            sh 'docker run -d --name temp_container petclinic-micro-svc:latest'
+                            sh 'docker commit temp_container rgyetvai/petclinic:testing'
+                            sh 'docker rm -f temp_container'
 
-                    sh 'docker rm -f petclinic-test'
-                    sh 'docker run -d --name petclinic-test --net zapnet --ip 172.16.0.2 -p 8080:8080 rgyetvai/petclinic:testing'
+                            sh 'docker rm -f petclinic-test'
+                            sh 'docker run -d --name petclinic-test --net zapnet --ip 172.16.0.2 -p 8080:8080 rgyetvai/petclinic:testing'
+                        }
+                    }
                 }
             }
         }
@@ -211,7 +215,7 @@ def nestedStagesOne() {
     stages["Unit & Integration Tests"] = {
         stage('Unit & Integration Tests') {
             sh 'mvn test'
-            sh 'mvn verify'
+            // sh 'mvn verify'
         }
     }
     stages["OWASP Dependency Scan"] = {

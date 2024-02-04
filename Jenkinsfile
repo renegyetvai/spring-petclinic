@@ -1,142 +1,209 @@
-// Properties
-properties([
-    buildDiscarder(
-        logRotator(
-            artifactDaysToKeepStr: "",
-            artifactNumToKeepStr: "",
-            daysToKeepStr: "",
-            numToKeepStr: "5"
-        )
-    )
-])
-
-// Environment
-podTemplate(
-    cloud: "K8s Cluster 01",
-    slaveConnectTimeout: 300,
-    idleMinutes: 5,
-    serviceAccount: "jenkins-admin",
-    yaml: '''
-        apiVersion: v1
-        kind: Pod
-        metadata:
-          name: jenkins-build-pod
-          namespace: devops-tools
-        spec:
-          affinity:
-            nodeAffinity:
-              requiredDuringSchedulingIgnoredDuringExecution:
-                nodeSelectorTerms:
-                - matchExpressions:
-                  - key: kubernetes.io/hostname
-                    operator: In
-                    values:
-                    - k8s-worker-3
-          containers:
-          - command:
-            - cat
-            image: rgyetvai/custom-dind:latest
-            name: custom-dind
-            resources:
-              limits:
-                cpu: "4"
-                memory: 8Gi
-              requests:
-                cpu: "2"
-                memory: 1Gi
-            tty: true
-            volumeMounts:
-            - mountPath: /var/run/docker.sock
-              name: docker-sock-volume
-          volumes:
-          - hostPath:
-              path: /var/run/docker.sock
-              type: Socket
-            name: docker-sock-volume
-    '''
-) {
-// Pipeline
-    node(POD_LABEL) {
-        try {
-            stage('Checkout') {
-                git url: 'git@github.com:renegyetvai/spring-petclinic.git', branch: 'parallelized-jenkinsfile', credentialsId: 'git_jenkins_ba_01'
-            }
-            stage('Prepare Pipeline Run') {
-                def stages = [:]
-                stages["Build Sources"] = {
-                    container('custom-dind') {
-                        sh 'mvn --version'
-                        sh 'mvn clean -DskipTests'
+pipeline {
+    agent {
+        kubernetes {
+            cloud 'K8s Cluster 01'
+            slaveConnectTimeout 300
+            idleMinutes 5
+            yaml'''
+                apiVersion: v1
+                kind: Pod
+                metadata:
+                  name: custom-build-pod
+                  namespace: devops-tools
+                spec:
+                  affinity:
+                    nodeAffinity:
+                      requiredDuringSchedulingIgnoredDuringExecution:
+                        nodeSelectorTerms:
+                        - matchExpressions:
+                          - key: kubernetes.io/hostname
+                            operator: In
+                            values:
+                            - k8s-worker-4
+                  containers:
+                  - command:
+                    - cat
+                    name: custom-dind-01
+                    image: rgyetvai/custom-dind:latest
+                    resources:
+                      limits:
+                        cpu: "1"
+                        memory: 2Gi
+                      requests:
+                        cpu: 500m
+                        memory: 1Gi
+                    tty: true
+                    volumeMounts:
+                    - mountPath: /var/run/docker.sock
+                      name: docker-sock-volume
+                    - mountPath: /usr/share/git
+                      name: shared-workspace
+                  - command:
+                    - cat
+                    name: custom-dind-02
+                    image: rgyetvai/custom-dind:latest
+                    resources:
+                      limits:
+                        cpu: "1"
+                        memory: 2Gi
+                      requests:
+                        cpu: 500m
+                        memory: 1Gi
+                    tty: true
+                    volumeMounts:
+                    - mountPath: /var/run/docker.sock
+                      name: docker-sock-volume
+                    - mountPath: /usr/share/git
+                      name: shared-workspace
+                  volumes:
+                  - hostPath:
+                      path: /var/run/docker.sock
+                      type: Socket
+                    name: docker-sock-volume
+                  - name: shared-workspace
+                    emptyDir: {}
+                '''
+        }
+    }
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '5'))
+        parallelsAlwaysFailFast()
+    }
+    environment {
+        SCANNER_HOME = tool 'sonar-scanner'
+        DOCKERHUB_CREDENTIALS = credentials('rgyetvai-dockerhub')
+    }
+    stages {
+        stage('Git Checkout') {
+            steps {
+                container('custom-dind-01') {
+                    script {
+                        git branch: 'parallelized-jenkinsfile',
+                            credentialsId: 'git_jenkins_ba_01',
+                            url: 'git@github.com:renegyetvai/spring-petclinic.git'
+                        // copy the git repo to the shared workspace
+                        sh 'cp -r ./* /usr/share/git'
                     }
                 }
-                stages["Setup Test Instance"] = {
-                    container('custom-dind') {
-                        sh 'docker rm -f petclinic-test'
-
-                        sh 'docker network rm -f zapnet'
-                        sh 'docker network create --driver=bridge --subnet=172.16.0.0/24 zapnet'
-
-                        sh 'mvn spring-boot:build-image -D spring-boot.build-image.imageName=petclinic-micro-svc -DskipTests'
-                        sh 'docker run -d --name temp_container petclinic-micro-svc:latest'
-                        sh 'docker commit temp_container rgyetvai/petclinic:testing'
-                        sh 'docker rm -f temp_container'
-
-                        sh 'docker rm -f petclinic-test'
-                        sh 'docker run -d --name petclinic-test --net zapnet --ip 172.16.0.2 -p 8080:8080 rgyetvai/petclinic:testing'
-                    }
-                }
-                parallel(stages)
             }
-            stage('Test & Scan Sources') {
-                container('custom-dind') {
-                    parallel getWrappedStages()
+        }
+        stage('Compile Sources') {
+            steps {
+                container('custom-dind-01') {
+                    sh 'mvn --version'
+                    sh 'mvn clean package -DskipTests'
                 }
             }
-            stage('Docker Build') {
-                container('custom-dind') {
+        }
+        stage('Setup Test Instance') {
+            steps {
+                container('custom-dind-02') {
+                    // Get shared workspace
+                    sh 'cp -r /usr/share/git/* .'
+
+                    sh 'docker rm -f petclinic-test'
+
+                    sh 'docker network rm -f zapnet'
+                    sh 'docker network create --driver=bridge --subnet=172.16.0.0/24 zapnet'
+
+                    sh 'mvn spring-boot:build-image -D spring-boot.build-image.imageName=petclinic-micro-svc -DskipTests'
                     sh 'docker run -d --name temp_container petclinic-micro-svc:latest'
-                    sh 'docker commit temp_container rgyetvai/petclinic:latest'
+                    sh 'docker commit temp_container rgyetvai/petclinic:testing'
                     sh 'docker rm -f temp_container'
+
+                    sh 'docker rm -f petclinic-test'
+                    sh 'docker run -d --name petclinic-test --net zapnet --ip 172.16.0.2 -p 8080:8080 rgyetvai/petclinic:testing'
                 }
             }
-            stage('Docker Push') {
-                container('custom-dind') {
-                    withEnv(['DOCKERHUB_CREDENTIALS = credentials(\'rgyetvai-dockerhub\')']) {
+        }
+        stage('Test & Scan Sources') {
+            steps {
+                script {
+                    getWrappedStages()
+                }
+            }
+        }
+        stage('Docker Build') {
+            steps {
+                container('custom-dind-02') {
+                    script {
+                        sh 'docker run -d --name temp_container petclinic-micro-svc:latest'
+                        sh 'docker commit temp_container rgyetvai/petclinic:latest'
+                        sh 'docker rm -f temp_container'
+                    }
+                }
+            }
+        }
+        stage('Docker Push') {
+            steps {
+                container('custom-dind-02') {
+                    script {
                         sh 'docker login -u $DOCKERHUB_CREDENTIALS_USR -p $DOCKERHUB_CREDENTIALS_PSW'
                         sh 'docker push rgyetvai/petclinic:latest'
                     }
                 }
             }
-            echo "SUCCESS"
-        } catch (err) {
-            echo "FAILURE: \n${err}"
-            throw err
-        } finally {
+        }
+    }
+    post {
+        always {
             sh 'docker logout'
-            container('custom-dind') {
+            container('custom-dind-02') {
                 sh 'docker stop petclinic-test'
                 sh 'docker rm -f petclinic-test'
+
+                sh 'docker rm -f zap'
+                sh 'docker rm -f nikto'
 
                 sh 'docker network rm -f zapnet'
 
                 sh 'docker rmi -f rgyetvai/petclinic:testing'
                 sh 'docker rmi -f softwaresecurityproject/zap-stable'
+                sh 'docker rmi -f frapsoft/nikto'
             }
-            echo "Pipeline finished"
         }
-    }  
+        success {
+            echo 'Build Success'
+        }
+        failure {
+            echo 'Build Failed'
+        }
+        unstable {
+            echo 'Build Unstable'
+        }
+        changed {
+            echo 'Build Changed'
+        }
+    }
 }
 
-// Functions
 def getWrappedStages() {
     stages = [:]
     stages["Tests & SAST"] = {
-        parallel nestedStagesOne()
+        stage('SAST') {
+            container('custom-dind-01') {
+                stage('Tests & SAST') {
+                    sh """
+                        echo "Executing Tests & SAST"
+                    """
+                }
+                parallel nestedStagesOne()
+            }
+        }
     }
     stages["Prepare, Build & Scan"] = {
-        parallel nestedStagesTwo()
+        stage('DAST') {
+            container('custom-dind-02') {
+                stage('Prepare, Build & Scan') {
+                    sh """
+                        echo "Executing Prepare, Build & Scan"
+                    """
+                }
+                parallel nestedStagesTwo()
+            }
+        }
     }
-    return stages
+    parallel stages
 }
 
 def nestedStagesOne() {
@@ -144,7 +211,7 @@ def nestedStagesOne() {
     stages["Unit & Integration Tests"] = {
         stage('Unit & Integration Tests') {
             sh 'mvn test'
-            //sh 'mvn verify'
+            sh 'mvn verify'
         }
     }
     stages["OWASP Dependency Scan"] = {
@@ -155,13 +222,20 @@ def nestedStagesOne() {
     }
     stages["SonarQube Scan"] = {
         stage('SonarQube Scan') {
-            def SCANNER_HOME = tool 'sonar-scanner'
             withSonarQubeEnv('sonarqube') {
-                sh """ ${SCANNER_HOME}/bin/sonar-scanner -Dsonar.projectName=petclinic-example \
+                sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=petclinic-example \
                 -Dsonar.java.binaries=. \
                 -Dsonar.projectKey=petclinic-example \
-                -Dsonar.exclusions=dependency-check-report.html """
+                -Dsonar.exclusions=dependency-check-report.html '''
             }
+        }
+    }
+    stages["Busy Waiting Simulation"] = {
+        stage('Busy Waiting Simulation') {
+            sh '''
+                echo "Executing Busy Waiting Simulation"
+                sleep 300
+            '''
         }
     }
     return stages
@@ -169,21 +243,21 @@ def nestedStagesOne() {
 
 def nestedStagesTwo() {
     stages = [:]
-    //stages["Trivy Image Scan"] = {
-    //    stage('Trivy Image Scan') {
+    stages["Trivy Image Scan"] = {
+        stage('Trivy Image Scan') {
             // Severity levels: MEDIUM,HIGH,CRITICAL
-    //        sh 'trivy image --exit-code 1 --severity CRITICAL rgyetvai/petclinic:testing'
-    //    }
-    //}
+            sh 'trivy image --exit-code 1 --severity CRITICAL --scanners vuln rgyetvai/petclinic:testing'
+        }
+    }
     stages["OWASP ZAP Scan"] = {
         stage('OWASP ZAP Scan') {
             sh 'docker pull softwaresecurityproject/zap-stable'
-            sh 'docker run --net zapnet --user root -v $(pwd):/zap/wrk/:rw -t softwaresecurityproject/zap-stable zap-baseline.py -t https://172.16.0.2:8080 -g gen.conf -r report.html -I'
+            sh 'docker run --net zapnet --name zap --user root -v $(pwd):/zap/wrk/:rw -t softwaresecurityproject/zap-stable zap-full-scan.py -t https://172.16.0.2:8080 -g gen.conf -r report.html -I'
         }
     }
-    stages["DAST 02"] = {
-        stage('DAST 02') {
-            echo "Executing DAST 02"
+    stages["Nikto Scan"] = {
+        stage('Nikto Scan') {
+            sh 'docker run --net zapnet --name nikto --rm frapsoft/nikto -h https://172.16.0.2:8080'
         }
     }
     return stages

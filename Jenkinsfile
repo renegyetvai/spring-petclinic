@@ -251,7 +251,7 @@ def nestedStagesTwo() {
     stages["Trivy Image Scan"] = {
         stage('Trivy Image Scan') {
             // Severity levels: MEDIUM,HIGH,CRITICAL
-            sh 'trivy image --exit-code 1 --severity CRITICAL --scanners vuln rgyetvai/petclinic:testing'
+            sh 'trivy image --exit-code 1 --severity CRITICAL --scanners vuln --reset rgyetvai/petclinic:testing'
         }
     }
     stages["OWASP ZAP Scan"] = {

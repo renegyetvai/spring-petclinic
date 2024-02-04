@@ -151,8 +151,9 @@ pipeline {
     }
     post {
         always {
-            sh 'docker logout'
             container('custom-dind-02') {
+                sh 'docker logout'
+
                 sh 'docker stop petclinic-test'
                 sh 'docker rm -f petclinic-test'
 

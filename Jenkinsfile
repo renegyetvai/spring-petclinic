@@ -113,6 +113,7 @@ pipeline {
                     sh 'docker network rm -f zapnet'
                     sh 'docker network create --driver=bridge --subnet=172.16.0.0/24 zapnet'
 
+                    sh 'mvn clean'
                     sh 'mvn spring-boot:build-image -D spring-boot.build-image.imageName=petclinic-micro-svc -DskipTests'
                     sh 'docker run -d --name temp_container petclinic-micro-svc:latest'
                     sh 'docker commit temp_container rgyetvai/petclinic:testing'

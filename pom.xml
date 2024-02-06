@@ -27,12 +27,12 @@
     <webjars-bootstrap.version>5.3.2</webjars-bootstrap.version>
     <webjars-font-awesome.version>4.7.0</webjars-font-awesome.version>
 
-<!--    <checkstyle.version>10.12.5</checkstyle.version>-->
+    <checkstyle.version>10.12.5</checkstyle.version>
     <jacoco.version>0.8.11</jacoco.version>
     <libsass.version>0.2.29</libsass.version>
     <lifecycle-mapping>1.0.0</lifecycle-mapping>
-<!--    <maven-checkstyle.version>3.3.1</maven-checkstyle.version>-->
-<!--    <nohttp-checkstyle.version>0.0.11</nohttp-checkstyle.version>-->
+    <maven-checkstyle.version>3.3.1</maven-checkstyle.version>
+    <nohttp-checkstyle.version>0.0.11</nohttp-checkstyle.version>
     <spring-format.version>0.0.40</spring-format.version>
 
   </properties>
@@ -209,6 +209,18 @@
 <!--          </execution>-->
 <!--        </executions>-->
 <!--      </plugin>-->
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>${maven-checkstyle.version}</version>
+        <executions>
+          <execution>
+            <id>nohttp-checkstyle-validation</id>
+            <phase>none</phase> <!-- This disables the execution -->
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.graalvm.buildtools</groupId>
         <artifactId>native-maven-plugin</artifactId>

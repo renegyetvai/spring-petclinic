@@ -120,7 +120,7 @@ pipeline {
                     sh 'docker rm -f temp_container'
 
                     sh 'docker rm -f petclinic-test'
-                    sh 'docker run -d --name petclinic-test --net zapnet --ip 172.16.0.2 -p 8080:8080 rgyetvai/petclinic:testing'
+                    sh 'docker run -d --name petclinic-test --net zapnet --ip 172.16.0.2 -p 8443:8443 rgyetvai/petclinic:testing'
                 }
             }
         }
@@ -136,14 +136,14 @@ pipeline {
             steps {
                 container('custom-dind') {
                     sh 'docker pull softwaresecurityproject/zap-stable'
-                    sh 'docker run --net zapnet --name zap --user root -v $(pwd):/zap/wrk/:rw -t softwaresecurityproject/zap-stable zap-full-scan.py -t https://172.16.0.2:8080 -g gen.conf -r report.html -I'
+                    sh 'docker run --net zapnet --name zap --user root -v $(pwd):/zap/wrk/:rw -t softwaresecurityproject/zap-stable zap-full-scan.py -t https://172.16.0.2:8443 -g gen.conf -r report.html -I'
                 }
             }
         }
         stage('Nikto Scan') {
             steps {
                 container('custom-dind') {
-                    sh 'docker run --net zapnet --name nikto --rm frapsoft/nikto -h https://172.16.0.2:8080'
+                    sh 'docker run --net zapnet --name nikto --rm frapsoft/nikto -h https://172.16.0.2:8443'
                 }
             }
         }

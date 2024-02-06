@@ -198,51 +198,51 @@
           </execution>
         </executions>
       </plugin>
-<!--      <plugin>-->
-<!--        <groupId>org.apache.maven.plugins</groupId>-->
-<!--        <artifactId>maven-checkstyle-plugin</artifactId>-->
-<!--        <version>${maven-checkstyle.version}</version>-->
-<!--        <dependencies>-->
-<!--          <dependency>-->
-<!--            <groupId>com.puppycrawl.tools</groupId>-->
-<!--            <artifactId>checkstyle</artifactId>-->
-<!--            <version>${checkstyle.version}</version>-->
-<!--          </dependency>-->
-<!--          <dependency>-->
-<!--            <groupId>io.spring.nohttp</groupId>-->
-<!--            <artifactId>nohttp-checkstyle</artifactId>-->
-<!--            <version>${nohttp-checkstyle.version}</version>-->
-<!--          </dependency>-->
-<!--        </dependencies>-->
-<!--        <executions>-->
-<!--          <execution>-->
-<!--            <id>nohttp-checkstyle-validation</id>-->
-<!--            <phase>validate</phase>-->
-<!--            <configuration>-->
-<!--              <configLocation>src/checkstyle/nohttp-checkstyle.xml</configLocation>-->
-<!--              <suppressionsLocation>src/checkstyle/nohttp-checkstyle-suppressions.xml</suppressionsLocation>-->
-<!--              <sourceDirectories>${basedir}</sourceDirectories>-->
-<!--              <includes>**/*</includes>-->
-<!--              <excludes>**/.git/**/*,**/.idea/**/*,**/target/**/,**/.flattened-pom.xml,**/*.class</excludes>-->
-<!--            </configuration>-->
-<!--            <goals>-->
-<!--              <goal>check</goal>-->
-<!--            </goals>-->
-<!--          </execution>-->
-<!--        </executions>-->
-<!--      </plugin>-->
-
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
         <version>${maven-checkstyle.version}</version>
+        <dependencies>
+          <dependency>
+            <groupId>com.puppycrawl.tools</groupId>
+            <artifactId>checkstyle</artifactId>
+            <version>${checkstyle.version}</version>
+          </dependency>
+          <dependency>
+            <groupId>io.spring.nohttp</groupId>
+            <artifactId>nohttp-checkstyle</artifactId>
+            <version>${nohttp-checkstyle.version}</version>
+          </dependency>
+        </dependencies>
         <executions>
           <execution>
             <id>nohttp-checkstyle-validation</id>
-            <phase>none</phase> <!-- This disables the execution -->
+            <phase>validate</phase>
+            <configuration>
+              <configLocation>src/checkstyle/nohttp-checkstyle.xml</configLocation>
+              <suppressionsLocation>src/checkstyle/nohttp-checkstyle-suppressions.xml</suppressionsLocation>
+              <sourceDirectories>${basedir}</sourceDirectories>
+              <includes>**/*</includes>
+              <excludes>**/.git/**/*,**/.idea/**/*,**/target/**/,**/.flattened-pom.xml,**/*.class,**/report-task.txt,dependency-check-report.xml</excludes>
+            </configuration>
+            <goals>
+              <goal>check</goal>
+            </goals>
           </execution>
         </executions>
       </plugin>
+
+<!--      <plugin>-->
+<!--        <groupId>org.apache.maven.plugins</groupId>-->
+<!--        <artifactId>maven-checkstyle-plugin</artifactId>-->
+<!--        <version>${maven-checkstyle.version}</version>-->
+<!--        <executions>-->
+<!--          <execution>-->
+<!--            <id>nohttp-checkstyle-validation</id>-->
+<!--            <phase>none</phase> &lt;!&ndash; This disables the execution &ndash;&gt;-->
+<!--          </execution>-->
+<!--        </executions>-->
+<!--      </plugin>-->
 
       <plugin>
         <groupId>org.graalvm.buildtools</groupId>

@@ -160,7 +160,6 @@ pipeline {
                 sh 'docker rm -f zap'
                 sh 'docker rm -f nikto'
 
-
                 sh 'docker network rm -f zapnet'
 
                 sh 'docker rmi -f rgyetvai/petclinic:testing'

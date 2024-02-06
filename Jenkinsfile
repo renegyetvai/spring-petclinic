@@ -98,13 +98,13 @@ pipeline {
                 }
             }
         }
-        stage('Busy Waiting Simulation') {
-            steps {
-                container('custom-dind') {
-                    sh 'sleep 300'
-                }
-            }
-        }
+        //stage('Busy Waiting Simulation') {
+        //    steps {
+        //        container('custom-dind') {
+        //            sh 'sleep 300'
+        //        }
+        //    }
+        //}
         stage('Setup Test Instance') {
             steps {
                 container('custom-dind') {

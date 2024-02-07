@@ -28,10 +28,10 @@ pipeline {
                     resources:
                       limits:
                         cpu: "1"
-                        memory: 2Gi
+                        memory: 1Gi
                       requests:
                         cpu: 500m
-                        memory: 1Gi
+                        memory: 500Mi
                     tty: true
                     volumeMounts:
                     - mountPath: /var/run/docker.sock
@@ -48,7 +48,7 @@ pipeline {
                         memory: 4Gi
                       requests:
                         cpu: "1"
-                        memory: 2Gi
+                        memory: 3Gi
                     tty: true
                     volumeMounts:
                     - mountPath: /var/run/docker.sock

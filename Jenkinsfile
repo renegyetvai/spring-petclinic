@@ -101,7 +101,7 @@ pipeline {
         stage('OWASP Dependency Scan') {
             steps {
                 container('custom-dind') {
-                    dependencyCheck additionalArguments: '', odcInstallation: 'DP-check'
+                    dependencyCheck additionalArguments: '--nvdApiKey "aa4003c1-eb27-42a5-aba8-af1e7acdb7d5"', odcInstallation: 'DP-check'
                     dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
                 }
             }

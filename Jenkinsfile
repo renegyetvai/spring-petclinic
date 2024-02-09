@@ -235,14 +235,14 @@ def nestedStagesOne() {
             }
         }
     }
-    stages["Busy Waiting Simulation"] = {
-        stage('Busy Waiting Simulation') {
-            sh '''
-                echo "Executing Busy Waiting Simulation"
-                sleep 300
-            '''
-        }
-    }
+    //stages["Busy Waiting Simulation"] = {
+    //    stage('Busy Waiting Simulation') {
+    //        sh '''
+    //            echo "Executing Busy Waiting Simulation"
+    //            sleep 300
+    //        '''
+    //    }
+    //}
     return stages
 }
 

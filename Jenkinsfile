@@ -72,21 +72,37 @@ pipeline {
     environment {
         SCANNER_HOME = tool 'sonar-scanner'
         DOCKERHUB_CREDENTIALS = credentials('rgyetvai-dockerhub')
+        IMAGE_TAG_TEST = 'rgyetvai/petclinic:testing'
+        IMAGE_TAG_LATEST = 'rgyetvai/petclinic:latest'
     }
     stages {
-        stage('Git Checkout') {
-            steps {
-                container('custom-dind-01') {
-                    script {
-                        git branch: 'parallelized-jenkinsfile',
-                            credentialsId: 'git_jenkins_ba_01',
-                            url: 'git@github.com:renegyetvai/spring-petclinic.git'
-                        // copy the git repo to the shared workspace
-                        sh 'cp -r ./* /usr/share/git'
+        stage('Prepare Workspace') {
+            parallel {
+                stage('Git Checkout') {
+                    steps {
+                        container('custom-dind-01') {
+                            script {
+                                git branch: 'parallelized-jenkinsfile',
+                                    credentialsId: 'git_jenkins_ba_01',
+                                    url: 'git@github.com:renegyetvai/spring-petclinic.git'
+                                // copy the git repo to the shared workspace
+                                sh 'cp -r ./* /usr/share/git'
+                            }
+                        }
+                    }
+                }
+                stage('Docker Login') {
+                    steps {
+                        container('custom-dind-02') {
+                            script {
+                                sh 'docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD'
+                            }
+                        }
                     }
                 }
             }
         }
+
         stage('Prepare Environment') {
             parallel {
                 stage('Compile Sources') {
@@ -110,11 +126,11 @@ pipeline {
 
                             sh 'mvn spring-boot:build-image -D spring-boot.build-image.imageName=petclinic-micro-svc -DskipTests'
                             sh 'docker run -d --name temp_container petclinic-micro-svc:latest'
-                            sh 'docker commit temp_container rgyetvai/petclinic:testing'
+                            sh 'docker commit temp_container $IMAGE_TAG_TEST'
                             sh 'docker rm -f temp_container'
 
                             sh 'docker rm -f petclinic-test'
-                            sh 'docker run -d --name petclinic-test --net zapnet --ip 172.16.0.2 -p 8080:8080 rgyetvai/petclinic:testing'
+                            sh 'docker run -d --name petclinic-test --net zapnet --ip 172.16.0.2 -p 8080:8080 $IMAGE_TAG_TEST'
                         }
                     }
                 }
@@ -132,7 +148,7 @@ pipeline {
                 container('custom-dind-02') {
                     script {
                         sh 'docker run -d --name temp_container petclinic-micro-svc:latest'
-                        sh 'docker commit temp_container rgyetvai/petclinic:latest'
+                        sh 'docker commit temp_container $IMAGE_TAG_LATEST'
                         sh 'docker rm -f temp_container'
                     }
                 }
@@ -142,8 +158,7 @@ pipeline {
             steps {
                 container('custom-dind-02') {
                     script {
-                        sh 'docker login -u $DOCKERHUB_CREDENTIALS_USR -p $DOCKERHUB_CREDENTIALS_PSW'
-                        sh 'docker push rgyetvai/petclinic:latest'
+                        sh 'docker push $IMAGE_TAG_LATEST'
                     }
                 }
             }
@@ -162,7 +177,7 @@ pipeline {
 
                 sh 'docker network rm -f zapnet'
 
-                sh 'docker rmi -f rgyetvai/petclinic:testing'
+                sh 'docker rmi -f $IMAGE_TAG_TEST'
                 sh 'docker rmi -f softwaresecurityproject/zap-stable'
                 sh 'docker rmi -f frapsoft/nikto'
             }
@@ -243,6 +258,17 @@ def nestedStagesOne() {
     //        '''
     //    }
     //}
+    stages["Snyk Scan"] = {
+        stage('Snyk Scan') {
+            snykSecurity(
+                snykInstallation: 'snyk@latest',
+                snykTokenId: 'renegyetvai-snyk-api-token',
+                failOnError: true,
+                severity: 'critical',
+                // place other parameters here
+            )
+        }
+    }
     return stages
 }
 
@@ -251,7 +277,7 @@ def nestedStagesTwo() {
     //stages["Trivy Image Scan"] = {
     //    stage('Trivy Image Scan') {
             // Severity levels: MEDIUM,HIGH,CRITICAL
-    //        sh 'trivy image --exit-code 1 --severity CRITICAL --scanners vuln --reset rgyetvai/petclinic:testing'
+    //        sh 'trivy image --exit-code 1 --severity CRITICAL --scanners vuln --reset $IMAGE_TAG_TEST'
     //    }
     //}
     stages["OWASP ZAP Scan"] = {
@@ -263,6 +289,15 @@ def nestedStagesTwo() {
     stages["Nikto Scan"] = {
         stage('Nikto Scan') {
             sh 'docker run --net zapnet --name nikto --rm frapsoft/nikto -h https://172.16.0.2:8080'
+        }
+    }
+    stages["Docker Scout"] = {
+        stage('Docker Scout') {
+            // Install Docker Scout
+            sh 'curl -sSfL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh | sh -s -- -b /usr/local/bin'
+
+            // Analyze and fail on critical or high vulnerabilities
+            sh 'docker-scout cves $IMAGE_TAG_TEST --exit-code --only-severity critical'
         }
     }
     return stages

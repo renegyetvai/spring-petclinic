@@ -102,7 +102,6 @@ pipeline {
                 }
             }
         }
-
         stage('Prepare Environment') {
             parallel {
                 stage('Compile Sources') {
@@ -258,17 +257,17 @@ def nestedStagesOne() {
     //        '''
     //    }
     //}
-    stages["Snyk Scan"] = {
-        stage('Snyk Scan') {
-            snykSecurity(
-                snykInstallation: 'snyk@latest',
-                snykTokenId: 'renegyetvai-snyk-api-token',
-                failOnError: true,
-                severity: 'critical',
+    //stages["Snyk Scan"] = {
+    //    stage('Snyk Scan') {
+    //        snykSecurity(
+    //            snykInstallation: 'snyk@latest',
+    //            snykTokenId: 'renegyetvai-snyk-api-token',
+    //            failOnError: true,
+    //            severity: 'critical',
                 // place other parameters here
-            )
-        }
-    }
+    //        )
+    //    }
+    //}
     return stages
 }
 

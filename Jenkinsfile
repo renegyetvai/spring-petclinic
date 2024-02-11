@@ -64,6 +64,26 @@ pipeline {
                 }
             }
         }
+        stage('Docker Login') {
+            steps {
+                container('custom-dind') {
+                    script {
+                        sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                    }
+                }
+            }
+        }
+        stage('Docker Scout') {
+            steps {
+                container('custom-dind') {
+                    // Install Docker Scout
+                    sh 'curl -sSfL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh | sh -s -- -b /usr/local/bin'
+
+                    // Analyze and fail on critical or high vulnerabilities
+                    sh 'docker-scout cves $IMAGE_TAG_TEST --exit-code --only-severity critical'
+                }
+            }
+        }
         stage('Compile Sources') {
             steps {
                 container('custom-dind') {
@@ -162,7 +182,6 @@ pipeline {
             steps {
                 container('custom-dind') {
                     script {
-                        sh 'docker login -u $DOCKERHUB_CREDENTIALS_USR -p $DOCKERHUB_CREDENTIALS_PSW'
                         sh 'docker push rgyetvai/petclinic:latest'
                     }
                 }

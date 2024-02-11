@@ -95,7 +95,7 @@ pipeline {
                     steps {
                         container('custom-dind-02') {
                             script {
-                                sh 'docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD'
+                                sh 'docker login -u $DOCKERHUB_CREDENTIALS_USR -p $DOCKERHUB_CREDENTIALS_PSW'
                             }
                         }
                     }

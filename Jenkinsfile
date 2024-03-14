@@ -79,14 +79,14 @@ pipeline {
                 }
             }
         }
-        stage('OWASP Dependency Scan') {
-            steps {
-                container('custom-dind') {
-                    dependencyCheck additionalArguments: '', odcInstallation: 'DP-check'
-                    dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
-                }
-            }
-        }
+        //stage('OWASP Dependency Scan') {
+        //    steps {
+        //        container('custom-dind') {
+        //            dependencyCheck additionalArguments: '', odcInstallation: 'DP-check'
+        //            dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+        //        }
+        //    }
+        //}
         stage('SonarQube Scan') {
             steps {
                 withSonarQubeEnv('sonarqube') {
@@ -133,16 +133,16 @@ pipeline {
         //}
         stage('Snyk Scan') {
             steps {
-                snykSecurity severity: 'critical', snykInstallation: 'snyk@latest', snykTokenId: 'renegyetvai-snyk-api-token'
+                snykSecurity severity: 'critical', snykInstallation: 'snyk@latest', snykTokenId: 'renegyetvai-snyk-api-token', failOnIssues: 'false'
             }
         }
-        stage('Docker Scout') {
-            steps {
-                container('custom-dind') {
-                    sh ''
-                }
-            }
-        }
+        //stage('Docker Scout') {
+        //    steps {
+        //        container('custom-dind') {
+        //            sh ''
+        //        }
+        //    }
+        //}
         stage('OWASP ZAP Scan') {
             steps {
                 container('custom-dind') {

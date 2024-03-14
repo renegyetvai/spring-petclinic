@@ -76,7 +76,6 @@ pipeline {
             steps {
                 container('custom-dind') {
                     sh 'mvn test'
-                    //sh 'mvn verify'
                 }
             }
         }
@@ -143,7 +142,7 @@ pipeline {
         stage('Nikto Scan') {
             steps {
                 container('custom-dind') {
-                    sh 'docker run --net zapnet --name nikto --rm frapsoft/nikto -h https://172.16.0.2:8443'
+                    sh 'docker run --net zapnet --name nikto --rm frapsoft/nikto -h 172.16.0.2 -p 8443'
                 }
             }
         }

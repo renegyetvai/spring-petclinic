@@ -3,7 +3,7 @@ pipeline {
         kubernetes {
             cloud 'K8s Cluster 01'
             slaveConnectTimeout 300
-            idleMinutes 3
+            idleMinutes 5
             yaml'''
                 apiVersion: v1
                 kind: Pod
@@ -210,6 +210,11 @@ def getWrappedStages() {
             }
         }
     }
+    stages["Snyk Scan"] = {
+        stage('Snyk Scan') {
+            snykSecurity severity: 'critical', snykInstallation: 'snyk@latest', snykTokenId: 'renegyetvai-snyk-api-token'
+        }
+    }
     stages["Prepare, Build & Scan"] = {
         stage('DAST') {
             container('custom-dind-02') {
@@ -247,11 +252,6 @@ def nestedStagesOne() {
                 -Dsonar.projectKey=petclinic-example \
                 -Dsonar.exclusions=dependency-check-report.html '''
             }
-        }
-    }
-    stages["Snyk Scan"] = {
-        stage('Snyk Scan') {
-            snykSecurity severity: 'critical', snykInstallation: 'snyk@latest', snykTokenId: 'renegyetvai-snyk-api-token'
         }
     }
     return stages

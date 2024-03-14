@@ -211,6 +211,7 @@ def getWrappedStages() {
         }
     }
     stages["Snyk Scan"] = {
+        // Snyks Jenkins plugin is not compatible with the container step
         stage('Snyk Scan') {
             snykSecurity severity: 'critical', snykInstallation: 'snyk@latest', snykTokenId: 'renegyetvai-snyk-api-token'
         }
@@ -235,7 +236,6 @@ def nestedStagesOne() {
     stages["Unit & Integration Tests"] = {
         stage('Unit & Integration Tests') {
             sh 'mvn test'
-            // sh 'mvn verify'
         }
     }
     stages["OWASP Dependency Scan"] = {
@@ -273,7 +273,8 @@ def nestedStagesTwo() {
     }
     stages["Nikto Scan"] = {
         stage('Nikto Scan') {
-            sh 'docker run --net zapnet --name nikto --rm frapsoft/nikto -h https://172.16.0.2:8080'
+            //sh 'docker run --net zapnet --name nikto --rm frapsoft/nikto -h https://172.16.0.2:8080'
+            sh 'docker run --net zapnet --name nikto --rm frapsoft/nikto -h 172.16.0.2 -p 8080'
         }
     }
     stages["Docker Scout"] = {

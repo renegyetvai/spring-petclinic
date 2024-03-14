@@ -131,6 +131,18 @@ pipeline {
         //        }
         //    }
         //}
+        stage('Snyk Scan') {
+            steps {
+                snykSecurity severity: 'critical', snykInstallation: 'snyk@latest', snykTokenId: 'renegyetvai-snyk-api-token'
+            }
+        }
+        stage('Docker Scout') {
+            steps {
+                container('custom-dind') {
+                    sh ''
+                }
+            }
+        }
         stage('OWASP ZAP Scan') {
             steps {
                 container('custom-dind') {

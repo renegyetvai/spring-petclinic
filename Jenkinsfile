@@ -3,7 +3,7 @@ pipeline {
         kubernetes {
             cloud 'K8s Cluster 01'
             slaveConnectTimeout 300
-            idleMinutes 5
+            idleMinutes 3
             yaml'''
                 apiVersion: v1
                 kind: Pod

@@ -80,7 +80,7 @@ pipeline {
                 container('custom-dind') {
                     sh 'mvn --version'
                     // Prepare the environment
-                    sh 'mvn versions:display-dependency-updates'
+                    sh 'mvn versions:use-latest-versions'
                     sh 'mvn dependency:purge-local-repository'
                     sh 'mvn -U clean validate compile -DskipTests'
                 }
@@ -202,6 +202,7 @@ pipeline {
             container('custom-dind') {
                 sh 'docker logout'
 
+                // Clean up all containers and networks
                 sh 'docker stop petclinic-test'
                 sh 'docker rm -f petclinic-test'
 
@@ -210,7 +211,13 @@ pipeline {
 
                 sh 'docker network rm -f zapnet'
 
+                // Clean up all images
                 sh 'docker rmi -f $IMAGE_TAG_TEST'
+                sh 'docker rmi -f paketobuildpacks/builder-jammy-base'
+                sh 'docker rmi -f paketobuildpacks/run-jammy-base'
+                sh 'docker rmi -f petclinic-micro-svc'
+                sh 'docker rmi -f testcontainers/ryuk'
+                sh 'docker rmi -f rgyetvai/custom-dind'
                 sh 'docker rmi -f softwaresecurityproject/zap-stable'
                 sh 'docker rmi -f frapsoft/nikto'
             }

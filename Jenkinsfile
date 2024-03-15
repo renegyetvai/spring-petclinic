@@ -80,8 +80,8 @@ pipeline {
                 container('custom-dind') {
                     sh './mvnw --version'
                     // Prepare the environment
-                    sh './mvnw versions:use-latest-versions'
-                    sh './mvnw dependency:purge-local-repository'
+                    //sh 'mvn versions:use-latest-versions'
+                    //sh 'mvn dependency:purge-local-repository'
                     sh './mvnw -U clean validate compile -DskipTests'
                 }
             }
@@ -89,7 +89,7 @@ pipeline {
         stage('Execute Tests') {
             steps {
                 container('custom-dind') {
-                    sh './mvnw test'
+                    sh 'mvn test'
                 }
             }
         }

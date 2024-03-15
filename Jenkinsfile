@@ -75,19 +75,21 @@ pipeline {
                 }
             }
         }
-        stage('Compile Sources') {
+        stage('Update Dependencies + Clean, Validate & Compile Sources') {
             steps {
                 container('custom-dind') {
                     sh 'mvn --version'
-                    sh 'mvn clean package -DskipTests'
+                    // Prepare the environment
+                    sh 'mvn versions:display-dependency-updates'
+                    sh 'mvn dependency:purge-local-repository'
+                    sh 'mvn clean validate compile -DskipTests'
                 }
             }
         }
-        stage('Unit & Integration Tests') {
+        stage('Execute Tests') {
             steps {
                 container('custom-dind') {
                     sh 'mvn test'
-                    //sh 'mvn verify'
                 }
             }
         }

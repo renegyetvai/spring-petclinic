@@ -128,6 +128,11 @@ pipeline {
                 }
             }
         }
+        stage('Snyk Scan') {
+            steps {
+                snykSecurity severity: 'critical', snykInstallation: 'snyk@latest', snykTokenId: 'renegyetvai-snyk-api-token', failOnIssues: 'false'
+            }
+        }
         stage('Docker Scout') {
             steps {
                 container('custom-dind') {

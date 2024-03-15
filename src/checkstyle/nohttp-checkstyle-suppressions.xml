@@ -7,4 +7,7 @@
 	<suppress files="node/.*" checks=".*"/>
 	<suppress files="build/.*" checks=".*"/>
 	<suppress files=".+\.(jar|git|ico|p12|gif|jks|jpg|svg|log)" checks="NoHttp"/>
+	<suppress files=".*PetClinicIntegrationTests.*" checks="NoHttp"/>
+	<suppress files=".*index.*" checks="NoHttp"/>
+	<suppress files=".*org.springframework.samples.petclinic.*" checks="NoHttp"/>
 </suppressions>

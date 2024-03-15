@@ -78,11 +78,11 @@ pipeline {
         stage('Update Dependencies + Clean, Validate & Compile Sources') {
             steps {
                 container('custom-dind') {
-                    sh './mvnw --version'
+                    sh 'mvn --version'
                     // Prepare the environment
-                    //sh 'mvn versions:use-latest-versions'
-                    //sh 'mvn dependency:purge-local-repository'
-                    sh './mvnw -U clean validate compile -DskipTests'
+                    sh 'mvn dependency:purge-local-repository'
+                    sh 'mvn versions:use-latest-versions'
+                    sh '.mvn -U clean validate compile -DskipTests'
                 }
             }
         }

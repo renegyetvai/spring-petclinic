@@ -11,4 +11,5 @@
 	<suppress files=".*PetClinicIntegrationTests.*" checks="NoHttp"/>
 	<suppress files=".*index.*" checks="NoHttp"/>
 	<suppress files=".*org.springframework.samples.petclinic.*" checks="NoHttp"/>
+	<suppress files=".gradle[\\/].*" checks=".*"/>
 </suppressions>

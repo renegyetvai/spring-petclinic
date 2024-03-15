@@ -82,7 +82,7 @@ pipeline {
                     // Prepare the environment
                     sh 'mvn versions:display-dependency-updates'
                     sh 'mvn dependency:purge-local-repository'
-                    sh 'mvn clean validate compile -DskipTests'
+                    sh 'mvn -U clean validate compile -DskipTests'
                 }
             }
         }

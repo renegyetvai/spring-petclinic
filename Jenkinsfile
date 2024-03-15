@@ -78,18 +78,18 @@ pipeline {
         stage('Update Dependencies + Clean, Validate & Compile Sources') {
             steps {
                 container('custom-dind') {
-                    sh 'mvn --version'
+                    sh './mvnw --version'
                     // Prepare the environment
-                    sh 'mvn versions:use-latest-versions'
-                    sh 'mvn dependency:purge-local-repository'
-                    sh 'mvn -U clean validate compile -DskipTests'
+                    sh './mvnw versions:use-latest-versions'
+                    sh './mvnw dependency:purge-local-repository'
+                    sh './mvnw -U clean validate compile -DskipTests'
                 }
             }
         }
         stage('Execute Tests') {
             steps {
                 container('custom-dind') {
-                    sh 'mvn test'
+                    sh './mvnw test'
                 }
             }
         }
@@ -101,7 +101,7 @@ pipeline {
                     sh 'docker network rm -f zapnet'
                     sh 'docker network create --driver=bridge --subnet=172.16.0.0/24 zapnet'
 
-                    sh 'mvn spring-boot:build-image -D spring-boot.build-image.imageName=spring-petclinic -DskipTests'
+                    sh './mvnw spring-boot:build-image -D spring-boot.build-image.imageName=spring-petclinic -DskipTests'
                     sh 'docker run -d --name temp_container spring-petclinic:latest'
                     sh 'docker commit temp_container $IMAGE_TAG_TEST'
                     sh 'docker rm -f temp_container'

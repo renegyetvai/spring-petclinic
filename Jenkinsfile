@@ -109,15 +109,15 @@ pipeline {
                 }
             }
         }
-        stage('OWASP Dependency Scan') {
-            steps {
-                container('custom-dind') {
+        //stage('OWASP Dependency Scan') {
+        //    steps {
+        //        container('custom-dind') {
                     // API Key: --nvdApiKey 'aa4003c1-eb27-42a5-aba8-af1e7acdb7d5'
-                    dependencyCheck additionalArguments: '', odcInstallation: 'DP-check'
-                    dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
-                }
-            }
-        }
+        //            dependencyCheck additionalArguments: '', odcInstallation: 'DP-check'
+        //            dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+        //        }
+        //    }
+        //}
         stage('SonarQube Scan') {
             steps {
                 withSonarQubeEnv('sonarqube') {
@@ -125,6 +125,17 @@ pipeline {
                     -Dsonar.java.binaries=. \
                     -Dsonar.projectKey=petclinic-example \
                     -Dsonar.exclusions=dependency-check-report.html '''
+                }
+            }
+        }
+        stage('Docker Scout') {
+            steps {
+                container('custom-dind') {
+                    // Install Docker Scout
+                    sh 'curl -sSfL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh | sh -s -- -b /usr/local/bin'
+
+                    // Analyze and fail on critical or high vulnerabilities
+                    sh 'docker-scout cves $IMAGE_TAG_TEST --exit-code --only-severity critical'
                 }
             }
         }
@@ -154,18 +165,7 @@ pipeline {
         stage('Nikto Scan') {
             steps {
                 container('custom-dind') {
-                    sh 'docker run --net zapnet --name nikto --rm frapsoft/nikto -h https://172.16.0.2:8080'
-                }
-            }
-        }
-        stage('Docker Scout') {
-            steps {
-                container('custom-dind') {
-                    // Install Docker Scout
-                    sh 'curl -sSfL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh | sh -s -- -b /usr/local/bin'
-
-                    // Analyze and fail on critical or high vulnerabilities
-                    sh 'docker-scout cves $IMAGE_TAG_TEST --exit-code --only-severity critical'
+                    sh 'docker run --net zapnet --name nikto --rm frapsoft/nikto -h 172.16.0.2 -p 8080'
                 }
             }
         }

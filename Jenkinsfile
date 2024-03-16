@@ -27,11 +27,11 @@ pipeline {
                     image: rgyetvai/custom-dind:latest
                     resources:
                       limits:
-                        cpu: "2"
-                        memory: 4Gi
-                      requests:
                         cpu: "1"
-                        memory: 2Gi
+                        memory: 1Gi
+                      requests:
+                        cpu: 500m
+                        memory: 500Mi
                     tty: true
                     volumeMounts:
                     - mountPath: /var/run/docker.sock

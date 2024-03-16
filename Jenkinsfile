@@ -182,7 +182,7 @@ pipeline {
             steps {
                 container('custom-dind') {
                     script {
-                        sh 'docker run -d --name temp_container petclinic-micro-svc:latest'
+                        sh 'docker run -d --name temp_container spring-petclinic:latest'
                         sh 'docker commit temp_container $IMAGE_TAG_LATEST'
                         sh 'docker rm -f temp_container'
                     }
@@ -217,7 +217,7 @@ pipeline {
                 sh 'docker rmi -f $IMAGE_TAG_TEST'
                 sh 'docker rmi -f paketobuildpacks/builder-jammy-base'
                 sh 'docker rmi -f paketobuildpacks/run-jammy-base'
-                sh 'docker rmi -f petclinic-micro-svc'
+                sh 'docker rmi -f spring-petclinic'
                 sh 'docker rmi -f testcontainers/ryuk'
                 sh 'docker rmi -f rgyetvai/custom-dind'
                 sh 'docker rmi -f softwaresecurityproject/zap-stable'

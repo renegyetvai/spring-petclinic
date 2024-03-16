@@ -44,8 +44,8 @@ pipeline {
                     image: rgyetvai/custom-dind:latest
                     resources:
                       limits:
-                        cpu: "1"
-                        memory: 1Gi
+                        cpu: "2"
+                        memory: 2Gi
                       requests:
                         cpu: 500m
                         memory: 500Mi

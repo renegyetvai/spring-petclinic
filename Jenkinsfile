@@ -27,7 +27,7 @@ pipeline {
                     image: rgyetvai/custom-dind:latest
                     resources:
                       limits:
-                        cpu: "1"
+                        cpu: "2"
                         memory: 2Gi
                       requests:
                         cpu: 500m
@@ -218,8 +218,11 @@ pipeline {
                 sh 'docker rmi -f paketobuildpacks/builder-jammy-base'
                 sh 'docker rmi -f paketobuildpacks/run-jammy-base'
                 sh 'docker rmi -f spring-petclinic'
-                sh 'docker rmi -f testcontainers/ryuk'
+                sh 'docker rmi -f rgyetvai/petclinic'
+                sh 'docker rmi -f petclinic'
                 sh 'docker rmi -f rgyetvai/custom-dind'
+                sh 'docker rmi -f custom-dind'
+                sh 'docker rmi -f testcontainers/ryuk'
                 sh 'docker rmi -f softwaresecurityproject/zap-stable'
                 sh 'docker rmi -f frapsoft/nikto'
             }

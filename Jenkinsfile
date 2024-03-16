@@ -108,9 +108,6 @@ pipeline {
                     steps {
                         container('custom-dind-01') {
                             sh 'mvn --version'
-                            // Prepare the environment
-                            sh 'mvn dependency:purge-local-repository'
-                            sh 'mvn versions:use-latest-versions'
                             sh 'mvn -U clean validate compile -DskipTests'
                         }
                     }
@@ -126,6 +123,8 @@ pipeline {
                             sh 'docker network rm -f zapnet'
                             sh 'docker network create --driver=bridge --subnet=172.16.0.0/24 zapnet'
 
+                            sh 'mvn dependency:purge-local-repository'
+                            sh 'mvn versions:use-latest-versions'
                             sh 'mvn spring-boot:build-image -D spring-boot.build-image.imageName=spring-petclinic -DskipTests'
                             sh 'docker run -d --name temp_container spring-petclinic:latest'
                             sh 'docker commit temp_container $IMAGE_TAG_TEST'

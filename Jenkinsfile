@@ -104,11 +104,14 @@ pipeline {
         }
         stage('Prepare Environment') {
             parallel {
-                stage('Compile Sources') {
+                stage('Compile') {
                     steps {
                         container('custom-dind-01') {
                             sh 'mvn --version'
-                            sh 'mvn clean package -DskipTests'
+                            // Prepare the environment
+                            sh 'mvn dependency:purge-local-repository'
+                            sh 'mvn versions:use-latest-versions'
+                            sh 'mvn -U clean validate compile -DskipTests'
                         }
                     }
                 }
@@ -123,8 +126,8 @@ pipeline {
                             sh 'docker network rm -f zapnet'
                             sh 'docker network create --driver=bridge --subnet=172.16.0.0/24 zapnet'
 
-                            sh 'mvn spring-boot:build-image -D spring-boot.build-image.imageName=petclinic-micro-svc -DskipTests'
-                            sh 'docker run -d --name temp_container petclinic-micro-svc:latest'
+                            sh 'mvn spring-boot:build-image -D spring-boot.build-image.imageName=spring-petclinic -DskipTests'
+                            sh 'docker run -d --name temp_container spring-petclinic:latest'
                             sh 'docker commit temp_container $IMAGE_TAG_TEST'
                             sh 'docker rm -f temp_container'
 
@@ -146,7 +149,7 @@ pipeline {
             steps {
                 container('custom-dind-02') {
                     script {
-                        sh 'docker run -d --name temp_container petclinic-micro-svc:latest'
+                        sh 'docker run -d --name temp_container spring-petclinic:latest'
                         sh 'docker commit temp_container $IMAGE_TAG_LATEST'
                         sh 'docker rm -f temp_container'
                     }
@@ -168,6 +171,7 @@ pipeline {
             container('custom-dind-02') {
                 sh 'docker logout'
 
+                // Clean up all containers and networks
                 sh 'docker stop petclinic-test'
                 sh 'docker rm -f petclinic-test'
 
@@ -176,7 +180,16 @@ pipeline {
 
                 sh 'docker network rm -f zapnet'
 
+                // Clean up all images
                 sh 'docker rmi -f $IMAGE_TAG_TEST'
+                sh 'docker rmi -f paketobuildpacks/builder-jammy-base'
+                sh 'docker rmi -f paketobuildpacks/run-jammy-base'
+                sh 'docker rmi -f spring-petclinic'
+                sh 'docker rmi -f rgyetvai/petclinic'
+                sh 'docker rmi -f petclinic'
+                sh 'docker rmi -f rgyetvai/custom-dind'
+                sh 'docker rmi -f custom-dind'
+                sh 'docker rmi -f testcontainers/ryuk'
                 sh 'docker rmi -f softwaresecurityproject/zap-stable'
                 sh 'docker rmi -f frapsoft/nikto'
             }

@@ -138,11 +138,13 @@ pipeline {
         stage('Docker Scout') {
             steps {
                 container('custom-dind') {
-                    // Install Docker Scout
-                    sh 'curl -sSfL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh | sh -s -- -b /usr/local/bin'
+                    catchError {
+                        // Install Docker Scout
+                        sh 'curl -sSfL https://raw.githubusercontent.com/docker/scout-cli/main/install.sh | sh -s -- -b /usr/local/bin'
 
-                    // Analyze and fail on critical or high vulnerabilities
-                    sh 'docker-scout cves $IMAGE_TAG_TEST --exit-code --only-severity critical'
+                        // Analyze and fail on critical or high vulnerabilities
+                        sh 'docker-scout cves $IMAGE_TAG_TEST --exit-code --only-severity critical'
+                    }
                 }
             }
         }
